@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="ALMA: historia clínica y portal del paciente para tu consulta independiente. Propuesta interactiva de DAVO DISEÑA.">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>ALMA Consulta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: columna de lectura de 1120px. Hero partido (texto | acrónimo). Control segmentado fijo arriba.
+   Radios: controles en píldora, paneles 20px, campos 10px. Un solo acento clínico. */
+:root{
+  --bg:#F5F5F7; --surface:#FFFFFF; --surface-2:#FAFAFC; --fill:#ECECF0; --ink:#1D1D1F; --ink-2:#3A3A3D; --muted:#6B6B70; --line:#E2E2E7;
+  --accent:#0A7C84; --accent-ink:#FFFFFF; --accent-soft:#E2F2F3; --ok:#1B7F46; --ok-soft:#E3F3E9; --warn:#985600; --warn-soft:#FBEFDB;
+  --shadow:rgba(20,28,40,.08); --glass:rgba(245,245,247,.78);
+  --font:"Hanken Grotesk", -apple-system, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+  --ease:cubic-bezier(.23,1,.32,1);
+  --r-panel:20px; --r-field:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0B0C0E; --surface:#16171A; --surface-2:#1B1C20; --fill:#26272C; --ink:#F5F5F7; --ink-2:#D4D4D9; --muted:#9A9AA1; --line:#2B2C31;
+  --accent:#3EC3CA; --accent-ink:#03292B; --accent-soft:#0E3133; --ok:#53CF84; --ok-soft:#12301F; --warn:#F0B14E; --warn-soft:#33270F;
+  --shadow:rgba(0,0,0,.45); --glass:rgba(11,12,14,.74); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B0C0E; --surface:#16171A; --surface-2:#1B1C20; --fill:#26272C; --ink:#F5F5F7; --ink-2:#D4D4D9; --muted:#9A9AA1; --line:#2B2C31;
+  --accent:#3EC3CA; --accent-ink:#03292B; --accent-soft:#0E3133; --ok:#53CF84; --ok-soft:#12301F; --warn:#F0B14E; --warn-soft:#33270F;
+  --shadow:rgba(0,0,0,.45); --glass:rgba(11,12,14,.74); color-scheme:dark}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.5;padding-inline:16px;padding-block:0 72px;-webkit-font-smoothing:antialiased;caret-color:var(--accent);accent-color:var(--accent);scrollbar-color:var(--line) transparent}
+::selection{background:var(--accent-soft);color:var(--ink)}
+.wrap{max-width:1120px;margin:0 auto}
+h1,h2,h3{margin:0;text-wrap:balance;letter-spacing:-.02em}
+p{margin:0}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+svg.i{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+
+/* Botones */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:999px;padding:10px 18px;font-weight:600;font-size:15px;background:var(--accent);color:var(--accent-ink);text-decoration:none;white-space:nowrap;transition:transform 160ms var(--ease),background-color 160ms ease,opacity 160ms ease}
+.btn:active{transform:scale(.97)}
+.btn.soft{background:var(--accent-soft);color:var(--accent)}
+.btn.plain{background:var(--fill);color:var(--ink)}
+.btn.sm{padding:7px 14px;font-size:14px}
+@media (hover:hover) and (pointer:fine){.btn:hover{opacity:.9}}
+
+/* Hero */
+.hero{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:48px;align-items:center;padding-block:64px 40px}
+.hero h1{font-size:clamp(64px,11vw,128px);font-weight:700;letter-spacing:-.045em;line-height:.95}
+.hero .tag{font-size:clamp(24px,2.8vw,34px);font-weight:700;letter-spacing:-.025em;line-height:1.15;margin-top:16px;color:var(--ink)}
+.hero .tag span{display:block;color:var(--accent)}
+.today{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:16px}
+.today .col{display:grid;gap:10px;align-content:start}
+.today h4{margin:0;font-size:15px;font-weight:600;color:var(--muted)}
+.slot{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.slot .h{font-weight:700;font-variant-numeric:tabular-nums}
+.slot .w{font-weight:600}
+.todo{display:flex;justify-content:space-between;gap:10px;align-items:center;background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:14px}
+.todo strong{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+@media (max-width:900px){.today{grid-template-columns:minmax(0,1fr)}}
+.hero .lede{font-size:18px;color:var(--muted);max-width:44ch;margin-top:14px}
+.hero .ctas{display:flex;gap:10px;flex-wrap:wrap;margin-top:26px}
+.acro{background:var(--surface);border-radius:28px;padding:28px 30px;box-shadow:0 1px 2px var(--shadow),0 24px 60px -30px var(--shadow);display:grid;gap:4px}
+.acro .ln{display:grid;grid-template-columns:56px minmax(0,1fr);align-items:baseline;padding-block:8px}
+.acro .ln+.ln{border-top:1px solid var(--line)}
+.acro b{font-size:40px;font-weight:700;color:var(--accent);letter-spacing:-.03em;line-height:1}
+.acro span{font-size:19px;font-weight:500}
+.acro p{font-size:14px;color:var(--muted);margin-top:10px}
+
+/* Control segmentado fijo */
+.segbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;padding-block:12px;background:var(--glass);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);display:flex;justify-content:center}
+.seg{display:inline-flex;gap:2px;background:var(--fill);border-radius:999px;padding:3px;max-width:100%;overflow-x:auto}
+.seg button{border:none;background:none;border-radius:999px;padding:8px 18px;font-size:14px;font-weight:500;color:var(--muted);white-space:nowrap;transition:background-color 200ms var(--ease),color 200ms ease,box-shadow 200ms ease}
+.seg button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px var(--shadow)}
+
+section.view{padding-block:40px 8px;transition:opacity 260ms var(--ease),transform 260ms var(--ease),filter 260ms var(--ease)}
+@starting-style{section.view{opacity:0;transform:translateY(8px);filter:blur(2px)}}
+.vhead{display:grid;gap:10px;margin-bottom:28px;max-width:62ch}
+.vhead h2{font-size:clamp(30px,4.4vw,44px);font-weight:700;letter-spacing:-.035em;line-height:1.05}
+.vhead p{color:var(--muted);font-size:17px}
+.flag{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--warn);background:var(--warn-soft);border-radius:999px;padding:4px 12px;width:fit-content}
+
+/* Marco de app (vista psicóloga) */
+.app{background:var(--surface);border-radius:24px;display:grid;grid-template-columns:220px minmax(0,1fr);min-height:600px;overflow:hidden;box-shadow:0 1px 2px var(--shadow),0 30px 80px -40px var(--shadow)}
+.side{background:var(--surface-2);padding:18px 12px;display:flex;flex-direction:column;gap:2px;border-right:1px solid var(--line)}
+.side .logo{font-weight:700;font-size:22px;letter-spacing:-.03em;padding:4px 12px 16px}
+.side .logo em{font-style:normal;color:var(--accent)}
+.side button{display:flex;align-items:center;gap:10px;background:none;border:none;text-align:left;padding:9px 12px;border-radius:10px;color:var(--ink-2);font-size:15px;transition:background-color 160ms ease}
+.side button.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.side .who{margin-top:auto;padding:12px;font-size:13px;color:var(--muted);border-top:1px solid var(--line)}
+.side .who b{display:block;color:var(--ink);font-weight:600}
+.main{padding:26px 28px;min-width:0;display:flex;flex-direction:column;gap:18px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.spread{justify-content:space-between}
+.main h3{font-size:24px;font-weight:700}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;font-size:14px;transition:background-color 160ms ease,border-color 160ms ease,color 160ms ease}
+.chip.on{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.mini{display:inline-flex;background:var(--fill);border-radius:999px;padding:2px}
+.mini button{border:none;background:none;border-radius:999px;padding:5px 14px;font-size:13px;font-weight:500;color:var(--muted)}
+.mini button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px var(--shadow)}
+.scroll{overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:15px}
+.tbl th{text-align:left;font-size:13px;font-weight:500;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--line)}
+.tbl td{padding:14px 12px;border-bottom:1px solid var(--line)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr.click{cursor:pointer}
+.tbl tr.click td:first-child{border-radius:10px 0 0 10px}
+.tbl tr.click td:last-child{border-radius:0 10px 10px 0}
+@media (hover:hover) and (pointer:fine){.tbl tr.click:hover td{background:var(--surface-2)}}
+.pill{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:3px 10px;white-space:nowrap}
+.pill.act{background:var(--ok-soft);color:var(--ok)}
+.pill.ina{background:var(--fill);color:var(--muted)}
+.pill.lock{background:var(--accent-soft);color:var(--accent)}
+.pill.pend{background:var(--warn-soft);color:var(--warn)}
+.back{display:inline-flex;align-items:center;gap:4px;background:none;border:none;color:var(--accent);font-weight:500;padding:0;width:fit-content}
+.phead{display:grid;gap:6px}
+.phead .prog{font-size:14px;color:var(--muted)}
+.phead h3{font-size:30px;letter-spacing:-.03em}
+.meta{display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:14px;color:var(--muted)}
+.ptabs{display:flex;gap:4px;overflow-x:auto;background:var(--fill);border-radius:12px;padding:3px;width:fit-content;max-width:100%}
+.ptabs button{background:none;border:none;border-radius:9px;padding:7px 14px;white-space:nowrap;color:var(--muted);font-size:14px;font-weight:500;transition:background-color 180ms var(--ease),color 180ms ease}
+.ptabs button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px var(--shadow)}
+.list{display:grid;gap:12px}
+.entry{background:var(--surface-2);border:1px solid var(--line);border-radius:16px;padding:16px 18px;display:grid;gap:10px}
+.entry .t{font-weight:600}
+.entry dl{display:grid;grid-template-columns:minmax(120px,180px) minmax(0,1fr);gap:6px 16px;margin:0;font-size:14px}
+.entry dt{color:var(--muted)}
+.entry dd{margin:0}
+.areas{display:flex;gap:6px;flex-wrap:wrap}
+.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;border-radius:16px;padding:18px;background:var(--accent-soft)}
+.form .full{grid-column:1/-1}
+.form label{display:grid;gap:6px;font-size:13px;font-weight:500;color:var(--ink-2)}
+.form label small{font-weight:400;color:var(--muted)}
+input,select,textarea{font:inherit;font-size:15px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:var(--r-field);padding:9px 12px;width:100%;transition:border-color 160ms ease,box-shadow 160ms ease}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+textarea{min-height:68px;resize:vertical}
+.media{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.file{background:var(--surface-2);border:1px solid var(--line);border-radius:16px;padding:14px;display:grid;gap:8px;font-size:14px}
+.file .ext{display:inline-grid;place-items:center;width:40px;height:40px;border-radius:10px;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:11px;letter-spacing:.02em}
+.hint{font-size:14px;color:var(--accent);min-height:20px}
+
+/* Vista paciente */
+.duo{display:grid;grid-template-columns:minmax(0,370px) minmax(0,1fr);gap:56px;align-items:start}
+.phone{background:var(--bg);border:11px solid var(--ink);border-radius:52px;padding:14px 14px 22px;display:grid;gap:12px;max-width:370px;width:100%;box-shadow:0 40px 80px -40px var(--shadow)}
+.island{width:110px;height:30px;border-radius:999px;background:var(--ink);margin:0 auto 6px}
+.phone .hi{font-size:30px;font-weight:700;letter-spacing:-.03em;padding:4px 6px 2px}
+.phone .sub{font-size:14px;color:var(--muted);padding:0 6px 4px}
+.card{background:var(--surface);border-radius:18px;padding:16px;display:grid;gap:10px}
+.card .t{font-weight:600}
+.card.alert{box-shadow:inset 0 0 0 1.5px var(--accent)}
+.task{display:flex;gap:12px;align-items:flex-start;font-size:15px}
+.task input{width:20px;height:20px;margin:1px 0 0;flex:none}
+.task.done span{text-decoration:line-through;color:var(--muted)}
+.feats{display:grid;gap:30px;padding-top:12px}
+.feats h3{font-size:20px;font-weight:600;margin-bottom:4px}
+.feats p{color:var(--muted);max-width:52ch}
+
+/* Configurador: listas agrupadas tipo Ajustes */
+.cfg{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:36px;align-items:start}
+.group{margin-bottom:30px}
+.group h3{font-size:19px;font-weight:600;margin:0 0 4px 4px}
+.group .gsub{font-size:14px;color:var(--muted);margin:0 0 10px 4px}
+.ilist{background:var(--surface);border-radius:var(--r-panel);overflow:hidden;box-shadow:0 1px 2px var(--shadow)}
+.opt{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;padding:14px 18px;cursor:pointer;position:relative}
+.opt+.opt::before{content:"";position:absolute;top:0;left:18px;right:0;height:1px;background:var(--line)}
+.opt .n{font-weight:500;display:block}
+.opt .d{font-size:14px;color:var(--muted);display:block;margin-top:2px}
+.opt .lv{font-size:12px;font-weight:600;margin-top:6px;display:inline-flex;gap:8px;color:var(--muted)}
+.opt .lv .p{color:var(--accent)}
+.opt .lv .x{color:var(--warn)}
+.opt.locked{cursor:default}
+.opt .inc{font-size:14px;color:var(--muted);white-space:nowrap}
+.hrs{font-variant-numeric:tabular-nums}
+.switch{appearance:none;-webkit-appearance:none;width:51px;height:31px;border-radius:999px;background:var(--fill);position:relative;flex:none;margin:0;cursor:pointer;transition:background-color 220ms var(--ease);border:none;padding:0}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#FFFFFF;box-shadow:0 2px 6px rgba(0,0,0,.18);transition:transform 260ms var(--ease)}
+.switch:checked{background:var(--accent)}
+.switch:checked::after{transform:translateX(20px)}
+.opt.out .switch:checked{background:var(--warn)}
+.opt:active .switch::after{width:31px}
+.opt:active .switch:checked::after{transform:translateX(16px)}
+
+.summary{position:sticky;top:calc(env(safe-area-inset-top,0px) + 76px);background:var(--surface);border-radius:24px;padding:24px;display:grid;gap:18px;box-shadow:0 1px 2px var(--shadow),0 24px 60px -30px var(--shadow)}
+.summary h3{font-size:15px;font-weight:500;color:var(--muted)}
+.level{font-size:34px;font-weight:700;letter-spacing:-.035em;line-height:1;margin-top:-10px}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;background:var(--fill);border-radius:12px;padding:3px}
+.steps span{text-align:center;font-size:12px;font-weight:600;padding:7px 4px;border-radius:9px;color:var(--muted);transition:background-color 220ms var(--ease),color 220ms ease}
+.steps span.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px var(--shadow)}
+.steps span.on.m{color:var(--warn)}
+.lvtxt{font-size:14px;color:var(--muted);margin-top:-6px}
+.big{display:grid;gap:2px}
+.big .k{font-size:14px;color:var(--muted)}
+.big .v{font-size:44px;font-weight:700;letter-spacing:-.04em;line-height:1.05}
+.big .v small{font-size:20px;font-weight:600;letter-spacing:-.01em;color:var(--ink-2)}
+.kv{display:flex;justify-content:space-between;gap:10px;font-size:15px;padding-top:10px;border-top:1px solid var(--line)}
+.kv strong{font-weight:600}
+.internal{display:none;gap:8px;background:var(--surface-2);border-radius:14px;padding:12px 14px;font-size:14px}
+body.interno .internal{display:grid}
+.internal .kv{border:none;padding:0;font-size:14px}
+.extra{font-size:13px;color:var(--warn)}
+.toast{font-size:13px;color:var(--ok);min-height:18px}
+.actions{display:grid;gap:8px}
+footer{color:var(--muted);font-size:13px;padding-top:28px;margin-top:28px;border-top:1px solid var(--line)}
+
+@media (max-width:900px){
+  .hero{grid-template-columns:minmax(0,1fr);gap:28px;padding-block:40px 24px}
+  .app{grid-template-columns:minmax(0,1fr)}
+  .side{flex-direction:row;overflow-x:auto;border-right:none;border-bottom:1px solid var(--line);padding:10px}
+  .side .logo,.side .who{display:none}
+  .side button{white-space:nowrap}
+  .main{padding:18px}
+  .duo,.cfg{grid-template-columns:minmax(0,1fr)}
+  .duo{gap:32px}
+  .summary{position:static}
+  .form{grid-template-columns:minmax(0,1fr)}
+  .entry dl{grid-template-columns:minmax(0,1fr);gap:2px}
+  .entry dt{margin-top:8px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition-duration:0ms!important}
+  @starting-style{section.view{transform:none;filter:none}}
+}
+@media (prefers-reduced-transparency:reduce){.segbar{background:var(--bg);backdrop-filter:none;-webkit-backdrop-filter:none}}
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <div>
+      <h1>ALMA</h1>
+      <p class="tag">Tu consulta independiente,<span>en un solo lugar.</span></p>
+      <p class="lede">Tu historia clínica como ya la llevas, y un portal propio para tus pacientes.</p>
+      <div class="ctas">
+        <button class="btn" type="button" data-jump="v-ps">Ver la maqueta</button>
+        <button class="btn soft" type="button" data-jump="v-cf">Elegir funciones</button>
+      </div>
+    </div>
+    <div class="acro" aria-label="Qué significa ALMA">
+      <div class="ln"><b>A</b><span>Acompaña</span></div>
+      <div class="ln"><b>L</b><span>Lleva el registro</span></div>
+      <div class="ln"><b>M</b><span>Mide el avance</span></div>
+      <div class="ln"><b>A</b><span>Atiende con orden</span></div>
+      <p>En griego, <i>psyché</i> quiere decir alma.</p>
+    </div>
+  </header>
+
+  <div class="segbar">
+    <div class="seg" role="tablist" aria-label="Secciones">
+      <button role="tab" aria-selected="true" data-view="v-ps">Tu vista</button>
+      <button role="tab" aria-selected="false" data-view="v-pa">Vista del paciente</button>
+      <button role="tab" aria-selected="false" data-view="v-cf">Elige funciones</button>
+    </div>
+  </div>
+
+  <section class="view" id="v-ps">
+    <div class="vhead">
+      <h2>Tu historia clínica, ordenada como ya trabajas.</h2>
+      <p>Abre un paciente y crea una evolución. Al guardarla queda bloqueada, como pide la Resolución 1995 de 1999, y solo se corrige con una nota aclaratoria.</p>
+      <span class="flag">Datos de ejemplo. Ningún paciente es real.</span>
+    </div>
+    <div class="app">
+      <aside class="side" aria-label="Menú de la maqueta">
+        <div class="logo">AL<em>MA</em></div>
+        <button class="on" type="button" data-goto="inicio"><svg class="i" viewBox="0 0 24 24"><path d="M4 11.5 12 5l8 6.5V19a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19z"/><path d="M9.5 20.5v-5h5v5"/></svg>Inicio</button>
+        <button type="button" data-goto="list"><svg class="i" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3 2.8-4.8 5.5-4.8s4.9 1.8 5.5 4.8"/><path d="M15.5 5.2a3 3 0 0 1 0 5.6M17.5 14.6c1.6.6 2.7 2 3 4.4"/></svg>Pacientes</button>
+        <button type="button" data-goto="agenda"><svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Agenda</button>
+        <button type="button" data-goto="tareas"><svg class="i" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>Tareas</button>
+        <div class="who"><b>Ps. tu nombre</b>Consulta independiente</div>
+      </aside>
+      <div class="main" id="main"></div>
+    </div>
+  </section>
+
+  <section class="view" id="v-pa" hidden>
+    <div class="vhead">
+      <h2>Lo que ve tu paciente en su celular.</h2>
+      <p>Cada paciente entra con su propio usuario y solo ve lo que tú le asignas. Tus notas de sesión nunca aparecen aquí.</p>
+    </div>
+    <div class="duo">
+      <div class="phone" id="phone"></div>
+      <div class="feats">
+        <div><h3>Consentimiento informado digital</h3><p>Lo firma antes de la primera sesión. Queda en PDF con nombre, documento, fecha y hora, dentro del centro de medios de su historia.</p></div>
+        <div><h3>Tareas que salen de la evolución</h3><p>Lo que escribes en "Tareas dejadas" al cerrar la sesión le llega solo. Él la marca como hecha y te deja un comentario.</p></div>
+        <div><h3>Documentos</h3><p>Le compartes guías, lecturas o constancias, y él te sube los soportes que le pidas.</p></div>
+        <div><h3>Se instala como app</h3><p>Funciona desde el navegador y se agrega a la pantalla de inicio, sin pasar por una tienda de apps.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="view" id="v-cf" hidden>
+    <div class="vhead">
+      <h2>Elige lo que quieres en tu ALMA.</h2>
+      <p>Las funciones básicas ya vienen activas. Enciende o apaga las demás y mira cómo cambian el nivel del proyecto, las horas de trabajo y el tiempo de entrega. Al terminar, envía tu selección.</p>
+    </div>
+    <div class="cfg">
+      <div id="groups"></div>
+      <aside class="summary" aria-live="polite">
+        <h3>Tu proyecto</h3>
+        <div class="level" id="lvl">Esencial</div>
+        <div class="steps" aria-hidden="true"><span data-s="e">Esencial</span><span data-s="p">Profesional</span><span data-s="m" class="m">A la medida</span></div>
+        <p class="lvtxt" id="lvlTxt"></p>
+        <div class="big"><span class="k">Tiempo de entrega estimado</span><span class="v num" id="wks">5 <small>semanas</small></span></div>
+        <div class="kv"><span>Horas de trabajo estimadas</span><strong id="hVis" class="num">0</strong></div>
+        <div class="kv"><span>Funciones activas</span><strong id="cnt" class="num">0</strong></div>
+        <div class="internal" aria-label="Detalle interno">
+          <div class="kv"><span>Horas de trabajo</span><strong id="hBase" class="num">0</strong></div>
+          <div class="kv"><span>Margen 10%</span><strong id="hMar" class="num">0</strong></div>
+          <div class="kv"><span>Total con margen</span><strong id="hTot" class="num">0</strong></div>
+          <span class="small muted">Calculado a unas 17 horas por semana.</span>
+        </div>
+        <p class="extra" id="extraTxt" hidden></p>
+        <div class="actions">
+          <a class="btn" id="wa" href="https://wa.me/" target="_blank" rel="noopener">Enviar por WhatsApp</a>
+          <button class="btn plain" id="copy" type="button">Copiar selección</button>
+        </div>
+        <div class="toast" id="toast"></div>
+        <textarea id="copyBox" aria-label="Resumen de tu selección" hidden readonly></textarea>
+      </aside>
+    </div>
+  </section>
+
+  <footer>ALMA es una propuesta de DAVO DISEÑA. Los tiempos son estimados e incluyen un margen; se confirman en la reunión de definición. La maqueta usa datos ficticios.</footer>
+</div>
+
+<script>
+(function(){
+/* Navegación */
+const tabs=[...document.querySelectorAll('.seg button')];
+function show(id,scroll){
+  tabs.forEach(t=>t.setAttribute('aria-selected',String(t.dataset.view===id)));
+  document.querySelectorAll('section.view').forEach(s=>s.hidden=s.id!==id);
+  if(scroll){const bar=document.querySelector('.segbar');window.scrollTo({top:bar.offsetTop,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});}
+}
+tabs.forEach(t=>t.addEventListener('click',()=>show(t.dataset.view)));
+document.querySelectorAll('[data-jump]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.jump,true)));
+if(location.hash==='#interno')document.body.classList.add('interno');
+if(location.hash==='#armar')show('v-cf');
+
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const hoy=()=>new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'});
+const IC={
+ back:'<svg class="i" viewBox="0 0 24 24"><path d="m14.5 6-6 6 6 6"/></svg>',
+ plus:'<svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+ lock:'<svg class="i" viewBox="0 0 24 24" style="width:13px;height:13px;vertical-align:-2px"><rect x="5" y="11" width="14" height="9" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>'
+};
+
+/* Datos de ejemplo */
+const programas=['Atención a adultos','Niños y adolescentes','Pareja y familia'];
+const pacientes=[
+ {id:1,n:'Laura Gómez',doc:'CC 1.020.345.678',prog:0,act:true,ult:'08 oct 2026',edad:29},
+ {id:2,n:'Andrés Rojas',doc:'CC 79.456.112',prog:0,act:true,ult:'06 oct 2026',edad:41},
+ {id:3,n:'Valentina Ruiz',doc:'TI 1.011.223.344',prog:1,act:true,ult:'03 oct 2026',edad:15},
+ {id:4,n:'Camilo y Sara Pérez',doc:'CC 80.112.334',prog:2,act:true,ult:'01 oct 2026',edad:35},
+ {id:5,n:'Martha Díaz',doc:'CC 52.778.901',prog:0,act:false,ult:'12 jun 2026',edad:57},
+ {id:6,n:'Julián Torres',doc:'CC 1.032.998.120',prog:0,act:false,ult:'20 abr 2026',edad:24}
+];
+const evol={1:[
+ {s:3,f:'08 oct 2026',tipo:'Seguimiento',prot:'TCC para ansiedad generalizada',obj:'Identificar pensamientos automáticos en situaciones laborales.',comp:'Colaboradora, ansiedad moderada al inicio; se regula durante la sesión.',actv:'Registro ABC, psicoeducación sobre distorsiones cognitivas.',res:'Identifica 3 pensamientos automáticos recurrentes.',tar:'Registro de pensamientos 3 veces por semana.',prox:'Reestructuración cognitiva.',dx:'F41.1'},
+ {s:2,f:'01 oct 2026',tipo:'Valoración parte 2',prot:'Entrevista semiestructurada',obj:'Completar áreas de ajuste y plan de intervención.',comp:'Atenta, discurso coherente.',actv:'Aplicación de GAD-7 (puntaje 13).',res:'Se acuerda un plan de 10 sesiones.',tar:'Respiración diafragmática diaria.',prox:'Iniciar la intervención.',dx:''}
+]};
+const notas={1:[{f:'02 oct 2026',ref:'Sesión 2',t:'El puntaje de GAD-7 registrado corresponde a la aplicación del 01/10 y no del 24/09.'}]};
+const medios={1:[{e:'PDF',n:'Consentimiento informado firmado',f:'24 sep 2026'},{e:'PDF',n:'GAD-7, resultado',f:'01 oct 2026'},{e:'JPG',n:'Registro ABC (foto del paciente)',f:'07 oct 2026'},{e:'DOC',n:'Remisión a psiquiatría',f:'01 oct 2026'}]};
+let st={view:'inicio',prog:0,filtro:'act',pid:null,ptab:'evo',newEvo:false,newNota:false};
+
+const main=document.getElementById('main');
+document.querySelectorAll('.side button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.side button').forEach(x=>x.classList.toggle('on',x===b));
+  st.view=b.dataset.goto;st.pid=null;render();
+}));
+
+function goPaciente(id){
+  document.querySelectorAll('.side button').forEach(x=>x.classList.toggle('on',x.dataset.goto==='list'));
+  st.view='list';st.pid=id;st.ptab='evo';st.newEvo=false;render();
+}
+function render(){
+  if(st.view==='inicio'){
+    const h=new Date().getHours(), sal=h<12?'Buenos días':h<19?'Buenas tardes':'Buenas noches';
+    main.innerHTML=`<div><h3>${sal}</h3><p class="muted">Esto es lo que tienes hoy.</p></div>
+    <div class="today"><div class="col"><h4>Citas de hoy</h4>
+      ${[['8:00 a. m.','Laura Gómez','Sesión 4, seguimiento',1,'Virtual'],['10:00 a. m.','Andrés Rojas','Sesión 2, valoración parte 2',2,'Presencial'],['4:00 p. m.','Valentina Ruiz','Sesión 6, seguimiento',3,'Virtual']].map(c=>`<button type="button" class="slot" data-open="${c[3]}" style="text-align:left;font:inherit;color:inherit;cursor:pointer"><span class="h">${c[0]}</span><span><span class="w">${c[1]}</span><br><span class="small muted">${c[2]}</span></span><span class="pill ${c[4]==='Virtual'?'lock':'ina'}">${c[4]}</span></button>`).join('')}
+    </div><div class="col"><h4>Pendiente</h4>
+      <div class="todo"><span>Consentimientos por firmar</span><strong>2</strong></div>
+      <div class="todo"><span>Tareas sin revisar</span><strong>3</strong></div>
+      <div class="todo"><span>Evoluciones por cerrar</span><strong>1</strong></div>
+    </div></div>`;
+    main.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>goPaciente(+b.dataset.open));
+    return;}
+  if(st.view==='agenda'){main.innerHTML=`<h3>Agenda</h3><p class="muted">Se conecta con tu Google Calendar. Los pacientes reservan en tu página de citas y la videollamada se crea en Google Meet.</p>
+   <div class="list">${[['Lunes 13 oct, 8:00 a. m.','Laura Gómez','Virtual'],['Lunes 13 oct, 10:00 a. m.','Andrés Rojas','Presencial'],['Martes 14 oct, 4:00 p. m.','Camilo y Sara Pérez','Virtual']].map(c=>`<div class="entry"><div class="row spread"><span class="t">${c[0]}</span><span class="pill ${c[2]==='Virtual'?'lock':'ina'}">${c[2]}</span></div><span class="muted">${c[1]}</span></div>`).join('')}</div>`;return;}
+  if(st.view==='tareas'){main.innerHTML=`<h3>Tareas asignadas</h3><div class="scroll"><table class="tbl"><thead><tr><th>Paciente</th><th>Tarea</th><th>Estado</th></tr></thead><tbody>
+   <tr><td>Laura Gómez</td><td>Registro de pensamientos 3 veces por semana</td><td><span class="pill pend">Pendiente</span></td></tr>
+   <tr><td>Andrés Rojas</td><td>Diario de sueño</td><td><span class="pill act">Hecha</span></td></tr>
+   <tr><td>Valentina Ruiz</td><td>Lista de fortalezas personales</td><td><span class="pill pend">Pendiente</span></td></tr></tbody></table></div>`;return;}
+  if(st.pid)return renderFicha();
+  const lista=pacientes.filter(p=>p.prog===st.prog&&(st.filtro==='todos'||p.act));
+  main.innerHTML=`
+   <div class="row spread"><h3>Pacientes</h3><button class="btn sm" type="button" id="nuevoP">${IC.plus}Nuevo paciente</button></div>
+   <div class="chips">${programas.map((p,i)=>`<button type="button" class="chip ${i===st.prog?'on':''}" data-prog="${i}">${p}</button>`).join('')}</div>
+   <div class="row spread"><div class="mini"><button type="button" data-f="act" class="${st.filtro==='act'?'on':''}">Activos</button><button type="button" data-f="todos" class="${st.filtro==='todos'?'on':''}">Todos</button></div><span class="small muted num">${lista.length} ${lista.length===1?'paciente':'pacientes'}</span></div>
+   <div class="scroll"><table class="tbl"><thead><tr><th>Paciente</th><th>N.º de historia</th><th>Última atención</th><th>Estado</th></tr></thead><tbody>
+   ${lista.map(p=>`<tr class="click" data-pid="${p.id}" tabindex="0"><td><strong style="font-weight:600">${esc(p.n)}</strong></td><td class="num muted">${p.doc}</td><td class="num">${p.ult}</td><td><span class="pill ${p.act?'act':'ina'}">${p.act?'Activo':'Inactivo'}</span></td></tr>`).join('')||'<tr><td colspan="4" class="muted">No hay pacientes activos en este programa. Cambia a "Todos" para ver el historial.</td></tr>'}
+   </tbody></table></div>
+   <p class="hint" id="hint"></p>`;
+  main.querySelectorAll('[data-prog]').forEach(b=>b.onclick=()=>{st.prog=+b.dataset.prog;render();});
+  main.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{st.filtro=b.dataset.f;render();});
+  main.querySelectorAll('[data-pid]').forEach(r=>{const go=()=>{st.pid=+r.dataset.pid;st.ptab='evo';st.newEvo=false;render();};r.onclick=go;r.onkeydown=e=>{if(e.key==='Enter')go();};});
+  main.querySelector('#nuevoP').onclick=()=>{main.querySelector('#hint').textContent='Al crear un paciente le llega una invitación por correo para entrar a su portal y firmar el consentimiento.';};
+}
+
+function renderFicha(){
+  const p=pacientes.find(x=>x.id===st.pid);
+  const ev=evol[p.id]||(evol[p.id]=[]), nt=notas[p.id]||(notas[p.id]=[]), md=medios[p.id]||(medios[p.id]=[]);
+  const T=[['val','Valoración'],['evo','Evoluciones'],['not','Notas aclaratorias'],['med','Centro de medios'],['tar','Tareas']];
+  const area=(n,ok)=>`<span class="pill ${ok?'act':'pend'}">${n}: ${ok?'adecuada':'con dificultad'}</span>`;
+  let body='';
+  if(st.ptab==='val'){
+    body=`<div class="entry"><div class="row spread"><span class="t">Valoración, parte 1</span><span class="pill lock">${IC.lock} 24 sep 2026</span></div>
+     <dl><dt>Motivo de consulta</dt><dd>Preocupación constante y dificultad para dormir desde hace 6 meses.</dd>
+     <dt>Antecedentes</dt><dd>Sin antecedentes psiquiátricos. Madre con diagnóstico de ansiedad.</dd>
+     <dt>Áreas de ajuste</dt><dd><div class="areas">${area('Laboral',0)}${area('Emocional',0)}${area('Salud',0)}${area('Familiar',1)}${area('Social',1)}${area('Pareja',1)}</div></dd></dl></div>
+     <div class="entry"><div class="row spread"><span class="t">Valoración, parte 2</span><span class="pill lock">${IC.lock} 01 oct 2026</span></div>
+     <dl><dt>¿Asiste a psiquiatría?</dt><dd>No</dd><dt>Se sugiere consultar a</dt><dd>Psiquiatría, por insomnio</dd>
+     <dt>Impresión diagnóstica</dt><dd>F41.1 Trastorno de ansiedad generalizada</dd><dt>Plan de intervención</dt><dd>TCC, 10 sesiones semanales.</dd></dl></div>
+     <p class="small muted">Los campos de la valoración se ajustan a tu formato actual.</p>`;
+  }else if(st.ptab==='evo'){
+    body=`<div class="row spread"><span class="small muted">Cada evolución queda bloqueada al guardarse.</span><button type="button" class="btn sm ${st.newEvo?'plain':''}" id="nEvo">${st.newEvo?'Cancelar':IC.plus+'Nueva evolución'}</button></div>
+    ${st.newEvo?`<form class="form" id="fEvo">
+      <label for="e-s">N.º de sesión<input id="e-s" value="${(ev[0]?.s||0)+1}" readonly></label>
+      <label for="e-tipo">Tipo de sesión<select id="e-tipo"><option>Seguimiento</option><option>Valoración parte 1</option><option>Valoración parte 2</option><option>Cierre</option></select></label>
+      <label class="full" for="e-prot">Protocolo aplicado<input id="e-prot" value="TCC para ansiedad generalizada"></label>
+      <label class="full" for="e-obj">Objetivo de la sesión<textarea id="e-obj">Reestructuración cognitiva de pensamientos laborales.</textarea></label>
+      <label for="e-comp">Comportamiento del paciente<textarea id="e-comp">Receptiva, buena adherencia a la tarea.</textarea></label>
+      <label for="e-act">Actividades realizadas<textarea id="e-act">Revisión del registro y debate socrático.</textarea></label>
+      <label for="e-res">Resultados de la sesión<textarea id="e-res">Genera pensamientos alternativos con apoyo.</textarea></label>
+      <label for="e-tar">Tareas dejadas <small>Le llegan al paciente</small><textarea id="e-tar">Practicar el pensamiento alternativo en 2 situaciones.</textarea></label>
+      <label for="e-prox">Objetivos de la próxima sesión<input id="e-prox" value="Exposición gradual"></label>
+      <label for="e-dx">Diagnóstico <small>Opcional</small><input id="e-dx" value="F41.1"></label>
+      <div class="full"><button class="btn" type="submit">${IC.lock}Guardar y bloquear</button></div>
+    </form>`:''}
+    <div class="list">${ev.map(e=>`<article class="entry"><div class="row spread"><span class="t">Sesión ${e.s}, ${esc(e.tipo)}</span><span class="pill lock">${IC.lock} ${e.f}</span></div>
+      <dl><dt>Protocolo</dt><dd>${esc(e.prot)}</dd><dt>Objetivo</dt><dd>${esc(e.obj)}</dd><dt>Comportamiento</dt><dd>${esc(e.comp)}</dd><dt>Actividades</dt><dd>${esc(e.actv)}</dd><dt>Resultados</dt><dd>${esc(e.res)}</dd><dt>Tareas dejadas</dt><dd>${esc(e.tar)}</dd><dt>Próxima sesión</dt><dd>${esc(e.prox)}</dd>${e.dx?`<dt>Diagnóstico</dt><dd>${esc(e.dx)}</dd>`:''}</dl></article>`).join('')||'<p class="muted">Aún no hay evoluciones. Crea la primera con "Nueva evolución".</p>'}</div>`;
+  }else if(st.ptab==='not'){
+    body=`<div class="row spread"><span class="small muted">Corrigen o amplían un registro sin modificarlo. Quedan con fecha, hora y autor.</span><button type="button" class="btn sm ${st.newNota?'plain':''}" id="nNota">${st.newNota?'Cancelar':IC.plus+'Nota aclaratoria'}</button></div>
+    ${st.newNota?`<form class="form" id="fNota"><label for="n-ref">Se refiere a<select id="n-ref">${ev.map(e=>`<option>Sesión ${e.s}</option>`).join('')}<option>Valoración</option></select></label><label class="full" for="n-t">Aclaración<textarea id="n-t">Se aclara que </textarea></label><div class="full"><button class="btn" type="submit">Guardar nota</button></div></form>`:''}
+    <div class="list">${nt.map(n=>`<div class="entry"><div class="row spread"><span class="t">${esc(n.ref)}</span><span class="small muted num">${n.f}</span></div><span>${esc(n.t)}</span></div>`).join('')||'<p class="muted">Sin notas aclaratorias.</p>'}</div>`;
+  }else if(st.ptab==='med'){
+    body=`<div class="row spread"><span class="small muted">Fotos, PDF, Word, audios y videos del proceso.</span><button type="button" class="btn sm soft" id="upl">${IC.plus}Subir archivo</button></div>
+    <div class="media">${md.map(m=>`<div class="file"><span class="ext">${m.e}</span><span style="font-weight:500">${esc(m.n)}</span><span class="small muted num">${m.f}</span></div>`).join('')||'<p class="muted">Sin archivos todavía.</p>'}</div>`;
+  }else{
+    body=`<div class="list">${ev.filter(e=>e.tar).map((e,i)=>`<div class="entry"><div class="row spread"><span class="t">${esc(e.tar)}</span><span class="pill ${i===0?'pend':'act'}">${i===0?'Pendiente':'Hecha'}</span></div><span class="small muted">Desde la sesión ${e.s}, ${e.f}</span></div>`).join('')||'<p class="muted">Sin tareas.</p>'}</div>`;
+  }
+  main.innerHTML=`<button type="button" class="back" id="back">${IC.back}Pacientes</button>
+   <div class="phead"><span class="prog">${programas[p.prog]}</span><h3>${esc(p.n)}</h3>
+   <div class="meta"><span class="num">${p.doc}</span><span>${p.edad} años</span><span class="pill ${p.act?'act':'ina'}">${p.act?'Activo':'Inactivo'}</span></div></div>
+   <div class="ptabs" role="tablist">${T.map(t=>`<button type="button" role="tab" aria-selected="${st.ptab===t[0]}" data-pt="${t[0]}" class="${st.ptab===t[0]?'on':''}">${t[1]}</button>`).join('')}</div>${body}`;
+  main.querySelector('#back').onclick=()=>{st.pid=null;render();};
+  main.querySelectorAll('[data-pt]').forEach(b=>b.onclick=()=>{st.ptab=b.dataset.pt;st.newEvo=false;st.newNota=false;render();});
+  const nE=main.querySelector('#nEvo'); if(nE)nE.onclick=()=>{st.newEvo=!st.newEvo;render();};
+  const nN=main.querySelector('#nNota'); if(nN)nN.onclick=()=>{st.newNota=!st.newNota;render();};
+  const up=main.querySelector('#upl'); if(up)up.onclick=()=>{md.unshift({e:'PDF',n:'Archivo nuevo (ejemplo)',f:hoy()});render();};
+  const fE=main.querySelector('#fEvo'); if(fE)fE.onsubmit=e=>{e.preventDefault();const g=id=>main.querySelector('#'+id).value;
+    ev.unshift({s:+g('e-s'),f:hoy(),tipo:g('e-tipo'),prot:g('e-prot'),obj:g('e-obj'),comp:g('e-comp'),actv:g('e-act'),res:g('e-res'),tar:g('e-tar'),prox:g('e-prox'),dx:g('e-dx')});st.newEvo=false;render();};
+  const fN=main.querySelector('#fNota'); if(fN)fN.onsubmit=e=>{e.preventDefault();nt.unshift({f:hoy(),ref:main.querySelector('#n-ref').value,t:main.querySelector('#n-t').value});st.newNota=false;render();};
+}
+render();
+
+/* Vista paciente */
+const ph={firmado:false,tareas:[{t:'Registro de pensamientos 3 veces por semana',d:false},{t:'Respiración diafragmática diaria',d:true}]};
+const phone=document.getElementById('phone');
+function renderPhone(){
+  phone.innerHTML=`<div class="island" aria-hidden="true"></div><div class="hi">Hola, Laura</div><p class="sub">Tu proceso con ALMA</p>
+  ${ph.firmado?`<div class="card"><span class="t">Consentimiento informado</span><span class="pill act" style="width:fit-content">Firmado el ${hoy()}</span></div>`:
+  `<div class="card alert"><span class="t">Firma tu consentimiento informado</span><span class="small muted">Léelo y acéptalo antes de tu primera sesión.</span>
+   <label class="small" for="firmaN" style="display:grid;gap:6px;font-weight:500">Tu nombre completo<input id="firmaN" value="Laura Gómez"></label>
+   <button class="btn" type="button" id="firmar">Acepto y firmo</button></div>`}
+  <div class="card"><span class="t">Mis tareas</span>${ph.tareas.map((t,i)=>`<label class="task ${t.d?'done':''}"><input type="checkbox" data-t="${i}" ${t.d?'checked':''}><span>${t.t}</span></label>`).join('')}</div>
+  <div class="card"><span class="t">Próxima cita</span><span class="small muted">Lunes 13 de octubre, 8:00 a. m. Por Google Meet.</span></div>
+  <div class="card"><span class="t">Mis documentos</span><span class="small">Guía de higiene del sueño.pdf</span><span class="small">Constancia de asistencia.pdf</span></div>`;
+  const f=phone.querySelector('#firmar'); if(f)f.onclick=()=>{ph.firmado=true;renderPhone();};
+  phone.querySelectorAll('[data-t]').forEach(c=>c.onchange=()=>{ph.tareas[+c.dataset.t].d=c.checked;renderPhone();});
+}
+renderPhone();
+
+/* Configurador */
+const MARGEN=1.1, H_SEMANA=17;
+const G=[
+ {g:'Base de la plataforma',s:'Siempre incluida.',items:[
+  {id:'base',n:'Usuarios y seguridad',d:'Cada quien entra con su usuario. Datos cifrados, copias de seguridad y política de datos (Ley 1581).',h:8,c:1,lock:1},
+  {id:'web',n:'Página web de una sección',d:'Tus servicios, quién eres, WhatsApp y botón para agendar.',h:5,c:1,lock:1},
+  {id:'pub',n:'Publicación, dominio y capacitación',d:'Tu dominio propio y una sesión para aprender a usarla.',h:4,c:1,lock:1}]},
+ {g:'Historia clínica',s:'Lo que usas tú en cada consulta.',items:[
+  {id:'pac',n:'Pacientes por programa',d:'Atención a adultos, niños, pareja. Filtro de activos o todos.',h:5,c:1,on:1},
+  {id:'val',n:'Valoración en parte 1 y parte 2',d:'Con tus campos: áreas de ajuste, psiquiatría, remisiones y plan.',h:6,c:2,on:1},
+  {id:'evo',n:'Evoluciones con bloqueo',d:'Protocolo, tipo y número de sesión, objetivo, comportamiento, actividades, resultados y tareas.',h:7,c:2,on:1},
+  {id:'not',n:'Notas aclaratorias',d:'Corrigen un registro sin modificarlo, con fecha y autor.',h:3,c:1,on:1},
+  {id:'med',n:'Centro de medios',d:'Fotos, PDF, Word, audios y videos por paciente.',h:4,c:1,on:1},
+  {id:'pdf',n:'Historia completa en PDF',d:'Para entregarla al paciente o a otra entidad cuando la pidan.',h:5,c:2,pro:1},
+  {id:'cie',n:'Buscador de diagnósticos CIE-10 y CIE-11',d:'Escribes y te sugiere el código.',h:3,c:1,pro:1}]},
+ {g:'Portal del paciente',s:'Lo que ve en su celular.',items:[
+  {id:'acc',n:'Acceso del paciente',d:'Invitación por correo y su propio usuario.',h:3,c:1,on:1},
+  {id:'con',n:'Consentimiento con firma digital',d:'Queda en PDF con nombre, documento, fecha y hora.',h:5,c:2,on:1},
+  {id:'tar',n:'Tareas desde la evolución',d:'Le llegan solas. Las marca como hechas y te comenta.',h:4,c:1,on:1},
+  {id:'doc',n:'Documentos compartidos',d:'Le envías guías y él te sube soportes.',h:2,c:1,on:1},
+  {id:'cue',n:'Cuestionarios con puntaje y gráfica',d:'PHQ-9, GAD-7 y otros, con la evolución en una gráfica.',h:7,c:2,pro:1}]},
+ {g:'Tu consulta como negocio',s:'Para crecer y ahorrar tiempo.',items:[
+  {id:'age',n:'Agenda con Google Calendar y Meet',d:'Tus pacientes reservan solos y la videollamada se crea sola.',h:2,c:1,on:1},
+  {id:'rec',n:'Recordatorios de cita',d:'Por correo y con enlace a WhatsApp. Menos inasistencias.',h:5,c:2,pro:1},
+  {id:'pay',n:'Cobro en línea por sesión',d:'Link de pago antes de la cita.',h:5,c:2,pro:1},
+  {id:'cer',n:'Constancias automáticas',d:'Constancia de asistencia en PDF con tu logo, en un clic.',h:4,c:1,pro:1},
+  {id:'dash',n:'Panel de tu consulta',d:'Pacientes activos y sesiones del mes.',h:4,c:1,pro:1},
+  {id:'multi',n:'Varios psicólogos y roles',d:'Cada uno ve sus pacientes. Una asistente maneja la agenda sin ver historias.',h:10,c:3,pro:1},
+  {id:'blog',n:'Web con más secciones',d:'Blog o recursos, testimonios y preguntas frecuentes.',h:4,c:1,pro:1}]},
+ {g:'Proyectos aparte',s:'Requieren su propio estudio y tiempo.',items:[
+  {id:'eps',n:'Atención por EPS',d:'RIPS y facturación electrónica. Exige habilitación en REPS y conexión con Minsalud y la DIAN.',c:3,out:1},
+  {id:'ia',n:'Asistente con inteligencia artificial',d:'Redacta la evolución a partir de tus apuntes.',c:3,out:1},
+  {id:'store',n:'App en Play Store y App Store',d:'Publicada en las tiendas, además de la versión web.',c:3,out:1},
+  {id:'vid',n:'Videollamada propia',d:'Dentro de ALMA, sin usar Google Meet.',c:3,out:1}]}
+];
+const CX=['','Complejidad baja','Complejidad media','Complejidad alta'];
+const all=G.flatMap(g=>g.items);
+const sel=new Set(all.filter(i=>i.lock||i.on).map(i=>i.id));
+const groupsEl=document.getElementById('groups');
+groupsEl.innerHTML=G.map(g=>`<div class="group"><h3>${g.g}</h3><p class="gsub">${g.s}</p><div class="ilist">${g.items.map(i=>`
+  <label class="opt ${i.lock?'locked':''} ${i.out?'out':''}" for="o-${i.id}">
+   <span><span class="n">${i.n}</span><span class="d">${i.d}</span>
+   <span class="lv"><span class="${i.out?'x':i.pro?'p':''}">${i.lock?'Incluida':i.out?'Proyecto aparte':i.pro?'Profesional':'Esencial'}</span><span>${CX[i.c]}</span><span class="hrs num">${i.h?i.h+' h':''}</span></span></span>
+   ${i.lock?`<span class="inc">Incluida</span><input type="checkbox" id="o-${i.id}" checked disabled hidden>`:`<input class="switch" type="checkbox" role="switch" id="o-${i.id}" data-id="${i.id}" ${sel.has(i.id)?'checked':''}>`}
+  </label>`).join('')}</div></div>`).join('');
+groupsEl.addEventListener('change',e=>{const id=e.target.dataset.id;if(!id)return;e.target.checked?sel.add(id):sel.delete(id);calc();});
+
+function calc(){
+  const chosen=all.filter(i=>sel.has(i.id));
+  const h=chosen.reduce((a,i)=>a+(i.h||0),0);
+  const mar=Math.round(h*(MARGEN-1)), tot=h+mar;
+  const wks=Math.max(2,Math.ceil(tot/H_SEMANA));
+  const anyPro=chosen.some(i=>i.pro), out=chosen.filter(i=>i.out);
+  let name='Esencial',k='e',txt='Lo necesario para arrancar tu consulta con orden y respaldo legal.';
+  if(anyPro){name='Profesional';k='p';txt='Tu consulta automatizada y lista para crecer.';}
+  if(out.length){name='A la medida';k='m';txt='Incluye proyectos que requieren su propio estudio.';}
+  document.getElementById('lvl').textContent=name;
+  document.querySelectorAll('.steps span').forEach(s=>s.classList.toggle('on',s.dataset.s===k));
+  document.getElementById('lvlTxt').textContent=txt;
+  document.getElementById('wks').innerHTML=wks+' <small>semanas</small>';
+  document.getElementById('cnt').textContent=chosen.length;
+  document.getElementById('hBase').textContent=h+' h';
+  document.getElementById('hMar').textContent='+'+mar+' h';
+  document.getElementById('hTot').textContent=tot+' h';
+  document.getElementById('hVis').textContent=tot+' h';
+  const ex=document.getElementById('extraTxt');
+  ex.hidden=!out.length; ex.textContent=out.length?'Fuera de este tiempo: '+out.map(i=>i.n.toLowerCase()).join(', ')+'.':'';
+  const msg='Hola! Estas son las funciones que elegí para ALMA:\n'+chosen.filter(i=>!i.lock).map(i=>'- '+i.n).join('\n')+
+    '\n\nNivel: '+name+'\nHoras de trabajo estimadas: '+tot+' h\nTiempo de entrega estimado: '+wks+' semanas'+(out.length?'\nProyectos aparte: '+out.map(i=>i.n).join(', '):'');
+  document.getElementById('copyBox').value=msg;
+  document.getElementById('wa').href='https://wa.me/?text='+encodeURIComponent(msg);
+}
+calc();
+document.getElementById('copy').addEventListener('click',()=>{
+  const box=document.getElementById('copyBox'),t=document.getElementById('toast');
+  const p=navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(box.value):Promise.reject();
+  p.then(()=>{t.textContent='Copiado. Pégalo en el chat.';}).catch(()=>{box.hidden=false;box.select();t.textContent='Selecciona el texto y cópialo.';});
+});
+})();
+</script>
+
+</body>
+
+</html>
