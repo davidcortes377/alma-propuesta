@@ -179,6 +179,12 @@ textarea{min-height:68px;resize:vertical}
 .opt .lv .p{color:var(--accent)}
 .opt .lv .x{color:var(--warn)}
 .opt.locked{cursor:default}
+.opt.sub{padding-left:38px}
+.opt.sub::before{left:38px!important}
+.opt.blocked{cursor:default}
+.opt.blocked .n,.opt.blocked .d{opacity:.45}
+.switch:disabled{opacity:.4;cursor:default}
+.opt .lv .req{font-weight:500}
 .opt .inc{font-size:14px;color:var(--muted);white-space:nowrap}
 .hrs{font-variant-numeric:tabular-nums}
 .switch{appearance:none;-webkit-appearance:none;width:51px;height:31px;border-radius:999px;background:var(--fill);position:relative;flex:none;margin:0;cursor:pointer;transition:background-color 220ms var(--ease);border:none;padding:0}
@@ -493,58 +499,97 @@ renderPhone();
 /* Configurador */
 const MARGEN=1.1, H_SEMANA=17;
 const G=[
- {g:'Base de la plataforma',s:'Siempre incluida.',items:[
-  {id:'base',n:'Usuarios y seguridad',d:'Cada quien entra con su usuario. Datos cifrados, copias de seguridad y política de datos (Ley 1581).',h:8,c:1,lock:1},
-  {id:'web',n:'Página web de una sección',d:'Tus servicios, quién eres, WhatsApp y botón para agendar.',h:5,c:1,lock:1},
-  {id:'pub',n:'Publicación, dominio y capacitación',d:'Tu dominio propio y una sesión para aprender a usarla.',h:4,c:1,lock:1}]},
- {g:'Historia clínica',s:'Lo que usas tú en cada consulta.',items:[
-  {id:'pac',n:'Pacientes por programa',d:'Atención a adultos, niños, pareja. Filtro de activos o todos.',h:5,c:1,on:1},
-  {id:'val',n:'Valoración en parte 1 y parte 2',d:'Con tus campos: áreas de ajuste, psiquiatría, remisiones y plan.',h:6,c:2,on:1},
-  {id:'evo',n:'Evoluciones con bloqueo',d:'Protocolo, tipo y número de sesión, objetivo, comportamiento, actividades, resultados y tareas.',h:7,c:2,on:1},
-  {id:'not',n:'Notas aclaratorias',d:'Corrigen un registro sin modificarlo, con fecha y autor.',h:3,c:1,on:1},
-  {id:'med',n:'Centro de medios',d:'Fotos, PDF, Word, audios y videos por paciente.',h:4,c:1,on:1},
-  {id:'pdf',n:'Historia completa en PDF',d:'Para entregarla al paciente o a otra entidad cuando la pidan.',h:5,c:2,pro:1},
-  {id:'cie',n:'Buscador de diagnósticos CIE-10 y CIE-11',d:'Escribes y te sugiere el código.',h:3,c:1,pro:1}]},
- {g:'Portal del paciente',s:'Lo que ve en su celular.',items:[
-  {id:'acc',n:'Acceso del paciente',d:'Invitación por correo y su propio usuario.',h:3,c:1,on:1},
-  {id:'con',n:'Consentimiento con firma digital',d:'Queda en PDF con nombre, documento, fecha y hora.',h:5,c:2,on:1},
-  {id:'tar',n:'Tareas desde la evolución',d:'Le llegan solas. Las marca como hechas y te comenta.',h:4,c:1,on:1},
-  {id:'doc',n:'Documentos compartidos',d:'Le envías guías y él te sube soportes.',h:2,c:1,on:1},
-  {id:'cue',n:'Cuestionarios con puntaje y gráfica',d:'PHQ-9, GAD-7 y otros, con la evolución en una gráfica.',h:7,c:2,pro:1}]},
- {g:'Tu consulta como negocio',s:'Para crecer y ahorrar tiempo.',items:[
-  {id:'age',n:'Agenda con Google Calendar y Meet',d:'Tus pacientes reservan solos y la videollamada se crea sola.',h:2,c:1,on:1},
-  {id:'rec',n:'Recordatorios de cita',d:'Por correo y con enlace a WhatsApp. Menos inasistencias.',h:5,c:2,pro:1},
-  {id:'pay',n:'Cobro en línea por sesión',d:'Link de pago antes de la cita.',h:5,c:2,pro:1},
-  {id:'cer',n:'Constancias automáticas',d:'Constancia de asistencia en PDF con tu logo, en un clic.',h:4,c:1,pro:1},
-  {id:'dash',n:'Panel de tu consulta',d:'Pacientes activos y sesiones del mes.',h:4,c:1,pro:1},
-  {id:'multi',n:'Varios psicólogos y roles',d:'Cada uno ve sus pacientes. Una asistente maneja la agenda sin ver historias.',h:10,c:3,pro:1},
-  {id:'blog',n:'Web con más secciones',d:'Blog o recursos, testimonios y preguntas frecuentes.',h:4,c:1,pro:1}]},
- {g:'Proyectos aparte',s:'Requieren su propio estudio y tiempo.',items:[
+ {g:'Base de la plataforma',s:'Siempre incluida. Sin esto no funciona nada.',items:[
+  {id:'login',n:'Tu inicio de sesión seguro',d:'Entras con correo y contraseña, y puedes recuperarla si la olvidas.',h:4,c:1,lock:1},
+  {id:'seg',n:'Seguridad de los datos',d:'Datos cifrados, copia de seguridad diaria y política de tratamiento de datos (Ley 1581).',h:4,c:1,lock:1},
+  {id:'lista',n:'Lista de pacientes con buscador',d:'Buscas por nombre o número de documento.',h:2,c:1,lock:1},
+  {id:'pub',n:'Publicación, dominio y capacitación',d:'Tu dominio propio (.com o .co) y una sesión para aprender a usarla.',h:4,c:1,lock:1}]},
+ {g:'Página web pública',s:'Lo que ve cualquier persona que te busque.',items:[
+  {id:'web',n:'Web de una página',d:'Tus servicios, quién eres, botón de WhatsApp y botón para agendar.',h:5,c:1,on:1},
+  {id:'web_faq',n:'Preguntas frecuentes y testimonios',d:'Dos secciones extra para generar confianza.',h:2,c:1,req:'web'},
+  {id:'web_form',n:'Formulario de contacto',d:'La persona deja sus datos y te llegan al correo.',h:1,c:1,req:'web'},
+  {id:'web_blog',n:'Blog o recursos',d:'Publicas artículos o guías tú misma, sin ayuda.',h:3,c:1,req:'web'}]},
+ {g:'Pacientes',s:'Cómo organizas a las personas que atiendes.',items:[
+  {id:'prog',n:'Programas',d:'Separar por Atención a adultos, Niños y adolescentes, Pareja y familia.',h:2,c:1,on:1},
+  {id:'act',n:'Activos y archivados',d:'Filtro de activos o todos, y archivar a quien terminó su proceso.',h:1,c:1,on:1},
+  {id:'ficha',n:'Ficha de datos personales',d:'Documento, contacto, EPS, acudiente y contacto de emergencia.',h:2,c:1,on:1},
+  {id:'excel',n:'Importar pacientes desde Excel',d:'Si ya tienes una lista, la subes de una vez en vez de crearlos uno por uno.',h:3,c:1}]},
+ {g:'Historia clínica',s:'Lo que escribes en cada consulta.',items:[
+  {id:'val',n:'Valoración parte 1 y parte 2',d:'Con tus campos exactos: áreas de ajuste, psiquiatría, a quién remites, plan.',h:6,c:2,on:1},
+  {id:'evo',n:'Evoluciones por sesión',d:'Número de sesión, tipo, protocolo, objetivo, comportamiento, actividades, resultados y tareas.',h:5,c:2,on:1},
+  {id:'lock',n:'Bloqueo al guardar',d:'Lo guardado ya no se puede editar ni borrar, como pide la Resolución 1995 de 1999.',h:1,c:1,on:1,req:'evo'},
+  {id:'notas',n:'Notas aclaratorias',d:'Para corregir algo de una evolución bloqueada, con fecha, hora y autor.',h:2,c:1,on:1,req:'lock'},
+  {id:'draft',n:'Guardado automático del borrador',d:'Si se cierra la pestaña o se va el internet, no pierdes lo que llevabas escrito.',h:2,c:1,req:'evo'},
+  {id:'frases',n:'Frases rápidas',d:'Guardas textos que repites seguido y los insertas con un clic.',h:3,c:1,req:'evo'},
+  {id:'cie',n:'Buscador de diagnósticos CIE-10',d:'Escribes ansiedad y te sugiere el código, por ejemplo F41.1.',h:3,c:1,req:'evo'},
+  {id:'pdf1',n:'Descargar una evolución en PDF',d:'Una sesión a la vez, con tus datos y tu logo, lista para imprimir.',h:2,c:1,req:'evo'},
+  {id:'pdfall',n:'Historia completa en un solo PDF',d:'Ficha, valoración, todas las evoluciones y notas en orden, con número de página. Para cuando el paciente u otra entidad te la pidan.',h:3,c:1,req:'pdf1'},
+  {id:'traza',n:'Registro de accesos',d:'Queda guardado quién abrió o creó cada registro y cuándo.',h:3,c:2,req:'evo'}]},
+ {g:'Centro de medios',s:'Los archivos de cada paciente.',items:[
+  {id:'med',n:'Archivos por paciente',d:'Subes y ves PDF, fotos y documentos de Word.',h:3,c:1,on:1},
+  {id:'med_av',n:'Audios y videos',d:'Por ejemplo, grabaciones de ejercicios o videos que te envían.',h:2,c:1,req:'med'},
+  {id:'med_tag',n:'Carpetas o etiquetas',d:'Ordenas los archivos por tipo: pruebas, remisiones, consentimientos.',h:2,c:1,req:'med'}]},
+ {g:'Portal del paciente',s:'Lo que ve tu paciente en su celular.',items:[
+  {id:'acc',n:'Acceso del paciente',d:'Le llega una invitación por correo y crea su propio usuario.',h:3,c:1,on:1},
+  {id:'con',n:'Consentimiento informado en línea',d:'Lo lee y acepta escribiendo su nombre y documento. Queda la fecha y la hora.',h:3,c:1,on:1,req:'acc'},
+  {id:'con_pdf',n:'PDF del consentimiento firmado',d:'Se genera solo y queda guardado en el centro de medios de su historia.',h:2,c:1,on:1,req:'con'},
+  {id:'con_firma',n:'Firma dibujada con el dedo',d:'Además del nombre, firma en la pantalla como en papel.',h:2,c:1,req:'con'},
+  {id:'tar',n:'Tareas asignadas',d:'Ve las tareas que dejas en la evolución y las marca como hechas.',h:3,c:1,on:1,req:'acc'},
+  {id:'tar_resp',n:'Respuesta a las tareas',d:'Te escribe cómo le fue o sube una foto del ejercicio.',h:2,c:1,req:'tar'},
+  {id:'doc',n:'Documentos compartidos',d:'Le envías guías o lecturas, y él te sube los soportes que le pidas.',h:2,c:1,on:1,req:'acc'},
+  {id:'cue',n:'Cuestionarios en línea',d:'Le envías preguntas y las responde desde su celular.',h:3,c:1,req:'acc'},
+  {id:'escalas',n:'Escalas con puntaje automático',d:'PHQ-9, GAD-7 y otras. El puntaje se calcula solo.',h:3,c:2,req:'cue'},
+  {id:'graf',n:'Gráfica de evolución',d:'Ves cómo cambian los puntajes de sesión en sesión.',h:2,c:1,req:'escalas'},
+  {id:'pwa',n:'Ícono en la pantalla del celular',d:'Se instala como app desde el navegador, sin tiendas de apps.',h:2,c:1,req:'acc'}]},
+ {g:'Agenda y recordatorios',s:'Para que nadie se olvide de su cita.',items:[
+  {id:'age',n:'Agendar con Google Calendar y Meet',d:'Los pacientes reservan en tu página de citas y la videollamada se crea sola.',h:2,c:1,on:1},
+  {id:'rec_mail',n:'Recordatorio por correo',d:'Le llega un correo automático el día antes de la cita.',h:3,c:1,req:'age'},
+  {id:'rec_wa1',n:'Recordatorio por WhatsApp con un clic',d:'Te aparece el mensaje listo y tú lo envías desde tu WhatsApp.',h:2,c:1,req:'age'},
+  {id:'rec_wa',n:'Recordatorio automático por WhatsApp',d:'Se envía solo. Usa WhatsApp Business, que cobra por cada mensaje.',h:6,c:3,req:'age'}]},
+ {g:'Cobros y documentos',s:'La parte administrativa.',items:[
+  {id:'pagos',n:'Registro de pagos',d:'Marcas cada sesión como pagada o pendiente.',h:3,c:1},
+  {id:'wompi',n:'Link de pago en línea',d:'El paciente paga con tarjeta, PSE o Nequi antes de la cita (Wompi).',h:4,c:2,req:'pagos'},
+  {id:'const',n:'Constancia de asistencia en PDF',d:'Con tu logo y tu firma, en un clic.',h:2,c:1},
+  {id:'cert',n:'Informes y certificados con plantilla',d:'Llenas una plantilla y sale el documento listo.',h:3,c:1},
+  {id:'resumen',n:'Resumen del mes',d:'Cuántas sesiones hiciste y cuánto ingresó.',h:3,c:1,req:'pagos'}]},
+ {g:'Equipo',s:'Solo si vas a trabajar con más personas.',items:[
+  {id:'multi',n:'Varios psicólogos',d:'Cada psicólogo entra con su usuario y ve solo sus pacientes.',h:8,c:3},
+  {id:'asist',n:'Asistente o secretaria',d:'Maneja la agenda y los pagos, pero no puede ver las historias clínicas.',h:3,c:2}]},
+ {g:'Proyectos aparte',s:'Cada uno necesita su propio estudio y tiempo.',items:[
   {id:'eps',n:'Atención por EPS',d:'RIPS y facturación electrónica. Exige habilitación en REPS y conexión con Minsalud y la DIAN.',c:3,out:1},
   {id:'ia',n:'Asistente con inteligencia artificial',d:'Redacta la evolución a partir de tus apuntes.',c:3,out:1},
   {id:'store',n:'App en Play Store y App Store',d:'Publicada en las tiendas, además de la versión web.',c:3,out:1},
   {id:'vid',n:'Videollamada propia',d:'Dentro de ALMA, sin usar Google Meet.',c:3,out:1}]}
 ];
-const CX=['','Complejidad baja','Complejidad media','Complejidad alta'];
+const CX=['','baja','media','alta'];
+const ESENCIAL_MAX=75;
 const all=G.flatMap(g=>g.items);
+const byId=Object.fromEntries(all.map(i=>[i.id,i]));
 const sel=new Set(all.filter(i=>i.lock||i.on).map(i=>i.id));
 const groupsEl=document.getElementById('groups');
 groupsEl.innerHTML=G.map(g=>`<div class="group"><h3>${g.g}</h3><p class="gsub">${g.s}</p><div class="ilist">${g.items.map(i=>`
-  <label class="opt ${i.lock?'locked':''} ${i.out?'out':''}" for="o-${i.id}">
+  <label class="opt ${i.lock?'locked':''} ${i.out?'out':''} ${i.req?'sub':''}" for="o-${i.id}">
    <span><span class="n">${i.n}</span><span class="d">${i.d}</span>
-   <span class="lv"><span class="${i.out?'x':i.pro?'p':''}">${i.lock?'Incluida':i.out?'Proyecto aparte':i.pro?'Profesional':'Esencial'}</span><span>${CX[i.c]}</span><span class="hrs num">${i.h?i.h+' h':''}</span></span></span>
-   ${i.lock?`<span class="inc">Incluida</span><input type="checkbox" id="o-${i.id}" checked disabled hidden>`:`<input class="switch" type="checkbox" role="switch" id="o-${i.id}" data-id="${i.id}" ${sel.has(i.id)?'checked':''}>`}
+   <span class="lv">${i.out?'<span class="x">Proyecto aparte</span>':`<span class="hrs">${i.h} h</span><span>Complejidad ${CX[i.c]}</span>`}${i.req?`<span class="req">Requiere: ${byId[i.req].n}</span>`:''}</span></span>
+   ${i.lock?`<span class="inc">Incluida</span>`:`<input class="switch" type="checkbox" role="switch" id="o-${i.id}" data-id="${i.id}" ${sel.has(i.id)?'checked':''}>`}
   </label>`).join('')}</div></div>`).join('');
-groupsEl.addEventListener('change',e=>{const id=e.target.dataset.id;if(!id)return;e.target.checked?sel.add(id):sel.delete(id);calc();});
+function syncReq(){
+  let changed=true;
+  while(changed){changed=false;for(const i of all){if(i.req&&sel.has(i.id)&&!sel.has(i.req)){sel.delete(i.id);changed=true;}}}
+  for(const i of all){const el=document.getElementById('o-'+i.id);if(!el||i.lock)continue;
+    const blocked=!!(i.req&&!sel.has(i.req));el.checked=sel.has(i.id);el.disabled=blocked;el.closest('.opt').classList.toggle('blocked',blocked);}
+}
+groupsEl.addEventListener('change',e=>{const id=e.target.dataset.id;if(!id)return;e.target.checked?sel.add(id):sel.delete(id);syncReq();calc();});
+syncReq();
 
 function calc(){
   const chosen=all.filter(i=>sel.has(i.id));
   const h=chosen.reduce((a,i)=>a+(i.h||0),0);
   const mar=Math.round(h*(MARGEN-1)), tot=h+mar;
   const wks=Math.max(2,Math.ceil(tot/H_SEMANA));
-  const anyPro=chosen.some(i=>i.pro), out=chosen.filter(i=>i.out);
-  let name='Esencial',k='e',txt='Lo necesario para arrancar tu consulta con orden y respaldo legal.';
-  if(anyPro){name='Profesional';k='p';txt='Tu consulta automatizada y lista para crecer.';}
+  const out=chosen.filter(i=>i.out);
+  let name='Esencial',k='e',txt='Hasta '+ESENCIAL_MAX+' horas de trabajo: lo necesario para arrancar con orden y respaldo legal.';
+  if(h>ESENCIAL_MAX){name='Profesional';k='p';txt='Más de '+ESENCIAL_MAX+' horas de trabajo: tu consulta más automatizada.';}
   if(out.length){name='A la medida';k='m';txt='Incluye proyectos que requieren su propio estudio.';}
   document.getElementById('lvl').textContent=name;
   document.querySelectorAll('.steps span').forEach(s=>s.classList.toggle('on',s.dataset.s===k));
